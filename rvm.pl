@@ -36,7 +36,7 @@ sub main{
 	print header;
 	print <<HTML
 <html>
-<form method="post" action="/cgi-bin/rvm.pl">
+<form method="post" action="rvm.pl">
 Login with your windows username/password<p>
 username: <input type="text" name="username">
 password: <input type="password" name="password"><p>
