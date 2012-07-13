@@ -268,7 +268,7 @@ sub resetvoice{
 #	print $2;
 
 $newurl="https://$nhost".$2;
-#$mech->get($newurl);
+$mech->get($newurl);
 print "<br>Voicemail password reset for $1 complete.";
 
 #logout
