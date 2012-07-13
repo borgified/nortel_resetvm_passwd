@@ -56,10 +56,14 @@ HTML
 
 			if($ext != 0){
 
-				my $name=&resetvoice($ext);
-				print "<br>voicemail password reset for $name complete";
-
-
+				my($name)=&resetvoice($ext);
+				if($name > 0){
+					print "<br>voicemail password reset for $name complete";
+				}elsif($name == -1){
+					print "<br>unable to find $username\'s extension in the phone system in the $nhost office";
+				}else{
+					print "<br>unable to reset voicemail password for $username";
+				}
 			}else{
 				print "<br>wrong username/password combination";
 			}
@@ -223,8 +227,9 @@ sub login{
 
 sub resetvoice{
 #input:  $ext, user extension to be reset
-#output: $name of user that was reset
-
+#output: $name of user that was reset or $error code if unsuccessful
+# error codes
+# -1 = cannot find extension
 	my($ext)=@_;
 
 
@@ -258,7 +263,9 @@ sub resetvoice{
 #select the user we want to reset password (identified by their extension)
 
 	$stuff=$mech->content();
-	$stuff=~/\<tr align="center" bgcolor="#......"\>\<td class="tableText"\>(.*)\<\/td\>\<td class="tableText".*Activity\<\/a\>\<\/td\> \<td class="tableLink"\>\<a href=" (.*) " onClick="return confirm\('Are you sure you want to reset password to default for Mailbox Number $ext/;
+	unless($stuff=~/\<tr align="center" bgcolor="#......"\>\<td class="tableText"\>(.*)\<\/td\>\<td class="tableText".*Activity\<\/a\>\<\/td\> \<td class="tableLink"\>\<a href=" (.*) " onClick="return confirm\('Are you sure you want to reset password to default for Mailbox Number $ext/){
+	return -1;
+	}
 
 #this is the url to run to reset the voicemail
 #	print $1;
