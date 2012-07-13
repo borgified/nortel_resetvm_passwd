@@ -54,18 +54,15 @@ HTML
 
 			my $ext=&login($username,$password);
 
-			if($ext != 0){
-
-				my($name)=&resetvoice($ext);
-				if($name > 0){
-					print "<br>voicemail password reset for $name complete";
-				}elsif($name == -1){
-					print "<br>unable to find $username\'s extension in the phone system in the $nhost office";
-				}else{
-					print "<br>unable to reset voicemail password for $username";
-				}
-			}else{
+			if($ext == -1){
+				print "<br>No phone number in your Active Directory details found... cannot determine extension. Aborting.\n";
+			}elsif($ext == 0){
 				print "<br>wrong username/password combination";
+			}else{
+				my($successful)=&resetvoice($ext);
+				unless($successful){
+					print "<br>Unable to reset voicemail password for $username because your extension in AD could not be matched up with an identical extension in the phone system to reset.";
+				}
 			}
 
 			sub ok() {
@@ -90,7 +87,7 @@ HTML
 
 sub login{
 #input: windows username, windows password
-#output: user's extension = successful login, 0 = failed login
+#output: user's extension = successful login, 0 = failed login, -1 = no extension details
 	my($username,$password)=@_;
 
 	my $userdn = testGuid ($username, $password);
@@ -177,8 +174,7 @@ sub login{
 		if($ext=~/(\d{4})$/){
 			$ext = $1;
 		}else{
-			print "no phone number found... cannot determine extension. aborting.\n";
-			return 0;
+			$ext = -1;
 		}
 	
 		return $ext;
@@ -227,9 +223,7 @@ sub login{
 
 sub resetvoice{
 #input:  $ext, user extension to be reset
-#output: $name of user that was reset or $error code if unsuccessful
-# error codes
-# -1 = cannot find extension
+#output: 0 if unsuccessful, 1 if successful
 	my($ext)=@_;
 
 
@@ -264,7 +258,7 @@ sub resetvoice{
 
 	$stuff=$mech->content();
 	unless($stuff=~/\<tr align="center" bgcolor="#......"\>\<td class="tableText"\>(.*)\<\/td\>\<td class="tableText".*Activity\<\/a\>\<\/td\> \<td class="tableLink"\>\<a href=" (.*) " onClick="return confirm\('Are you sure you want to reset password to default for Mailbox Number $ext/){
-	return -1;
+	return 0;
 	}
 
 #this is the url to run to reset the voicemail
@@ -274,11 +268,12 @@ sub resetvoice{
 #	print $2;
 
 $newurl="https://$nhost".$2;
-$mech->get($newurl);
+#$mech->get($newurl);
+print "<br>Voicemail password reset for $1 complete.";
 
 #logout
 $mech->get("https://$nhost/Voicemail-cgi-bin/F983Wui.exe");
 
 
-	return $1;
+	return 1;
 }
