@@ -9,7 +9,7 @@ use Net::LDAP;
 
 
 
-my %config = do "/secret/ldap.config";
+my %config = do "/secret/ldap_act.config";
 
 my $host        = $config{'host'};
 my $ldaps       = $config{'ldaps'};
